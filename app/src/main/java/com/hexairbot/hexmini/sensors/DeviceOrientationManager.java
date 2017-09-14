@@ -335,13 +335,13 @@ implements Runnable
   
     private float[] getRotationMatrixFromOrientation(float[] o)
     {
-        float sinX = FloatMath.sin(o[1]);
-        float cosX = FloatMath.cos(o[1]);
-        float sinY = FloatMath.sin(o[2]);
-        float cosY = FloatMath.cos(o[2]);
-        float sinZ = FloatMath.sin(o[0]);
-        float cosZ = FloatMath.cos(o[0]);
-       
+        float sinX = (float) Math.sin(o[1]);
+        float cosX = (float) Math.cos(o[1]);
+        float sinY = (float) Math.sin(o[2]);
+        float cosY = (float) Math.cos(o[2]);
+        float sinZ = (float) Math.sin(o[0]);
+        float cosZ = (float) Math.cos(o[0]);
+
         // rotation about x-axis (pitch)
         xM[0] = 1.0f;
         xM[1] = 0.0f;
@@ -406,7 +406,7 @@ implements Runnable
     {
         // Calculate the angular speed of the sample
         float omegaMagnitude =
-                        FloatMath.sqrt(gyroValues[0] * gyroValues[0] +
+                        (float) Math.sqrt(gyroValues[0] * gyroValues[0] +
                         gyroValues[1] * gyroValues[1] +
                         gyroValues[2] * gyroValues[2]);
 
@@ -422,8 +422,8 @@ implements Runnable
         // We will convert this axis-angle representation of the delta rotation
         // into a quaternion before turning it into the rotation matrix.
         float thetaOverTwo = omegaMagnitude * timeFactor;
-        float sinThetaOverTwo = FloatMath.sin(thetaOverTwo);
-        float cosThetaOverTwo = FloatMath.cos(thetaOverTwo);
+        float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);
+        float cosThetaOverTwo = (float) Math.cos(thetaOverTwo);
         deltaRotationVector[0] = sinThetaOverTwo * normValues[0];
         deltaRotationVector[1] = sinThetaOverTwo * normValues[1];
         deltaRotationVector[2] = sinThetaOverTwo * normValues[2];
@@ -455,9 +455,9 @@ implements Runnable
             }
             
             accMagOrientation[2] = (float) Math.atan2(acceleroValues[0],
-                    FloatMath.sqrt(acceleroValues[1]*acceleroValues[1]+acceleroValues[2]*acceleroValues[2])) * -1.f;
+                    (float) Math.sqrt(acceleroValues[1]*acceleroValues[1]+acceleroValues[2]*acceleroValues[2])) * -1.f;
             accMagOrientation[1] = ((float) Math.atan2(acceleroValues[1],
-                    FloatMath.sqrt(acceleroValues[0]*acceleroValues[0]+acceleroValues[2]*acceleroValues[2]))) * -1.f;            
+                    (float) Math.sqrt(acceleroValues[0]*acceleroValues[0]+acceleroValues[2]*acceleroValues[2]))) * -1.f;
         }
     }
     
