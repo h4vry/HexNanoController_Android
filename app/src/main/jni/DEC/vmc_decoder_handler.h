@@ -123,15 +123,13 @@ int  init_decoder_hander(void * framedata, short codec_capbility, \
 int start_decoder_hander(void);
 int close_decoder_hander(void);
 
-//初始化系统解码器
 struct ANativeWindow;
 int VmcInitSysDecoder(ANativeWindow *window);
 
 void VmcCloseSysDecoder();
 
 
-//设置解码策略
-#define DECODE_AUTO		0 //默认采用系统解码器，如果不可用则采用软件解码器
+#define DECODE_AUTO		0
 #define DECODE_SOFTWARE	1
 #define DECODE_SYS		2
 void VmcSetDecodeStrategy(int sta);

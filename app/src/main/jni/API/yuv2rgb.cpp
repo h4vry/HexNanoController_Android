@@ -299,8 +299,7 @@ void gl_uninitialize()
         g_buffer = NULL;  
     }  
 }  
-//ÉèÖÃÍ¼ÏñÊý¾Ý  
-void gl_set_framebuffer(const char* buffer, int buffersize, int width, int height)  
+void gl_set_framebuffer(const char* buffer, int buffersize, int width, int height)
 {  
 	g_buffer = (char *)buffer;
 	g_width = width;  
@@ -321,8 +320,7 @@ void gl_set_framebuffer(const char* buffer, int buffersize, int width, int heigh
         memcpy(g_buffer, buffer, buffersize);  
 #endif  
 }  
-//»­ÆÁ  
-void gl_render_frame()  
+void gl_render_frame()
 {  
 	static int j;
 	if(j++>=300)

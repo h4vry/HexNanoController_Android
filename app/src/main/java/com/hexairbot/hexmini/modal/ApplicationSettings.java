@@ -116,7 +116,7 @@ public class ApplicationSettings {
 	public boolean save(){
 		File file = new File(path);
 		try {
-			//save as xml£¬be compatible with the plist of iOS
+			//save as xml to be compatible with the plist of iOS
 			PropertyListParser.saveAsXML(data, file);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

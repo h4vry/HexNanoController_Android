@@ -2,8 +2,7 @@
 filename:	RTMPStream.h 
 created:	2013-04-3 
 author: 	firehood  
-purpose:	发送H264视频到RTMP Server，使用libRtmp库 
-*********************************************************************/	 
+*********************************************************************/
 #pragma once  
 
 
@@ -28,8 +27,7 @@ typedef unsigned long long uint64_t;
 
 //#define FILEBUFSIZE (1024 * 1024 * 10)		 //  10M  
   
-// NALU单元  
-typedef struct _NaluUnit  
+typedef struct _NaluUnit
 {  
 	int type;  
 	int size;  
@@ -66,16 +64,11 @@ public:
 	~CRTMPStream(void);  
 public:  
 	void SetOUTChunkSize(int size);
-	// 连接到RTMP Server  
-	int Connect(const char* url,bool bWrite);	
+	int Connect(const char* url,bool bWrite);
 	int Read(unsigned char *buf,int bufferSize,int *plen);
-	// 断开连接  
-	void Close();  
-	// 发送MetaData  
-	bool SendMetadata(LPRTMPMetadata lpMetaData);  
-	// 发送H264数据帧  
-	bool SendH264Packet(unsigned char *data,unsigned int size,bool bIsKeyFrame,unsigned int nTimeStamp);  
-	// 发送H264文件  
+	void Close();
+	bool SendMetadata(LPRTMPMetadata lpMetaData);
+	bool SendH264Packet(unsigned char *data,unsigned int size,bool bIsKeyFrame,unsigned int nTimeStamp);
 	bool OpenH264File(const char *pFileName);
 	int SendVideoHeader();
 	int SendVideoHeaderRaw(vmc::BYTE *pSPS,int lenSPS,vmc::BYTE *pPPS,int lenPPS);
@@ -83,13 +76,11 @@ public:
 	int OpenAACFile(const char *sPath);
 	int SendAACHeader();
 	int SendAACFrame();
-	// 送缓存中读取一个NALU包  
-	bool ReadOneNaluFromBuf(NaluUnit &nalu);  
+	bool ReadOneNaluFromBuf(NaluUnit &nalu);
 	unsigned char * GetFileDataBuffer();
 	int CurPos();
 private:  
-	// 发送数据  
-	int SendPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp);  
+	int SendPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp);
 	
 private:  
 	RTMP* m_pRtmp;	

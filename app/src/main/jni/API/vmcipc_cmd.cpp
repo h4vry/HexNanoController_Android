@@ -10,7 +10,6 @@
 
 namespace cmd
 {
-	//创建客户端
 static vmc::INetBase *g_client = NULL;
 void CommandConnectionStart(int ,void *);
 static pthread_mutex_t g_mutex_client = PTHREAD_MUTEX_INITIALIZER;
@@ -235,7 +234,6 @@ static pthread_mutex_t g_mutex_ctl_data = PTHREAD_MUTEX_INITIALIZER;
 
 void CommandConnectionStart();
 
-//监控同服务器的连接状况
 class ClientListener : public vmc::INetListener
 {
 public:
@@ -289,7 +287,6 @@ static std::map<std::string,std::string> g_serverStatus;
 static bool g_bCommandConnStarted = false;
 static int ReadRecordState(rapidjson::Document *d);
 
-//读取服务器推送的电量
 static int ReadDataBattery(rapidjson::Document *d)
 {
 	pthread_mutex_lock(&g_mutex_ctl_data);
@@ -323,7 +320,6 @@ static int ReadDeviceDebugInfo(rapidjson::Document *d)
 }
 
 
-//读取服务器推送的位置信息
 static int ReadDataPos(rapidjson::Document *d)
 {
 	printf("%s x:%d y:%d\n",__FUNCTION__,(*d)["x"].GetInt(),(*d)["y"].GetInt());
@@ -355,7 +351,6 @@ int ReadRecordState(rapidjson::Document *d)
 	pthread_mutex_lock(&g_mutex_ctl_data);
 	if(d->HasMember("remote_record_state"))
 	{
-		//  状态值参照vmcipc_defines.h从STATE_RECORD_STOPED到ERR_RECORD
 		g_serverStatus["remote_record_state"] = (*d)["remote_record_state"].GetString();
 	}
 	pthread_mutex_unlock(&g_mutex_ctl_data);
@@ -434,7 +429,6 @@ void CommandConnectionInit()
 	//g_serverStatus.SetObject();
 	vmc::CreateThreadPool(GetCmdProcessPoolId(),2);
 	
-	//注册数据处理函数	
 	vmc::RegisterDataCallback(CMD_REPORT_BATTERY,GetCmdProcessPoolId(),ReadDataBattery);
 	vmc::RegisterDataCallback(CMD_REPORT_POSITION,GetCmdProcessPoolId(),ReadDataPos);
 	vmc::RegisterDataCallback(CMD_REPORT_DEVICE_INFO,GetCmdProcessPoolId(),ReadDeviceInfo);

@@ -60,7 +60,6 @@ void InitProxyObj(jobject objIpcProxy)
 
 void InitJavaMethods()
 {
-    //找到java中的类
     if(g_methodShowStatus)
     {
     	goto end;

@@ -63,10 +63,10 @@ public class BleConnectinManager  {
         public void onReceive(Context context, Intent intent) {
         	
             final String action = intent.getAction();
-            if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {  //连接成功
+            if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
             	Log.e(TAG, "Only gatt, just wait");
             } 
-            else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) { //断开连接
+            else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 Log.e(TAG,  "ACTION_GATT_DISCONNECTED");
                 
                 Log.e(TAG, "thread name:" + Thread.currentThread().getName());
@@ -77,9 +77,8 @@ public class BleConnectinManager  {
 					delegate.didDisconnect(BleConnectinManager.this);
 				}
             }
-            else if(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) //可以开始干活了
+            else if(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action))
             {
-            	//Toast.makeText(BleConnectinManager.this.context, "连接成功，现在可以正常通信！", Toast.LENGTH_SHORT).show();
             	isConnected = true;
             	
             	/*
@@ -92,7 +91,7 @@ public class BleConnectinManager  {
         			delegate.didConnect(BleConnectinManager.this);
         		}
             }
-            else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) { //收到数据
+            else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
             	Log.e(TAG, "RECV DATA");
             	//byte[] data = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
             	byte[] data = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
@@ -102,7 +101,7 @@ public class BleConnectinManager  {
 				}
             }
             else{
-            	Toast.makeText(BleConnectinManager.this.context, "Unkonwn！", Toast.LENGTH_SHORT).show();	
+                Toast.makeText(BleConnectinManager.this.context, "Unkonwn", Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -233,7 +232,7 @@ public class BleConnectinManager  {
 	}
 
 
-	private  IntentFilter makeGattUpdateIntentFilter() {                        //注册接收的事件
+	private  IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);

@@ -363,7 +363,7 @@ implements Runnable
         yM[6] = -sinY;
         yM[7] = 0.0f;
         yM[8] = cosY;
-         
+
         // rotation about z-axis (azimuth)
         zM[0] = cosZ;
         zM[1] = sinZ;
@@ -374,7 +374,7 @@ implements Runnable
         zM[6] = 0.0f;
         zM[7] = 0.0f;
         zM[8] = 1.0f;
-        
+
         // rotation order is y, x, z (roll, pitch, azimuth)
         matrixMultiplication(resultMatrix2, xM, yM);
         matrixMultiplication(resultMatrix, zM, resultMatrix2);

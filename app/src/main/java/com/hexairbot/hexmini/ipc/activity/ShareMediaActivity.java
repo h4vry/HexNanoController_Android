@@ -255,7 +255,7 @@ public class ShareMediaActivity extends Activity implements OnTouchListener{
 				mode = DRAG;				
 				break;
 		
-		    case MotionEvent.ACTION_POINTER_DOWN:  //¶àµã´¥¿Ø
+            case MotionEvent.ACTION_POINTER_DOWN:
 		        oldDist = this.spacing(event);
 		        if (oldDist > 10f) {
 		             savedMatrix.set(matrix);

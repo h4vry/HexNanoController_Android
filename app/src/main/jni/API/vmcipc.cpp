@@ -303,7 +303,6 @@ JNIEXPORT void JNICALL Java_com_vmc_ipc_proxy_IpcProxy_setBitrateControlType
   (JNIEnv *, jobject, jint type){
 	LOGI("-->Java_com_vmc_ipc_proxy_IpcProxy_setBitrateControlType");
 	int i;
-	//¸ù¾Ýgstapi_ipc.h
 	if(type == 1)
 	{
 		i = 2;

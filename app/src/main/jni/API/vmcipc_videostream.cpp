@@ -48,13 +48,10 @@ static FPSCalc g_fcNet(0.9);
 
 
 
-//统计网络延迟
 static uint64_t g_ndTimeLast = 0;
 static uint64_t g_ndFrameTimeLast = 0;
 static uint64_t g_ndTimeUpdate = 0;
-//20秒最大网络延迟
 int g_ndMax = 0;
-//20秒最大帧延迟
 int g_ndFrameMax = 0;
 
 
@@ -74,11 +71,6 @@ static void  preview_cb (int state, char * error )
 	}
 }
 
-
-/**
-*@brief 解码器回调函数
-*@return void
-*/
 
 static void updateframe_cb (void *ext)
 {
@@ -125,7 +117,6 @@ static void updateframe_cb (void *ext)
 		if(cur - g_timeDec0 > 4500 && (g_fcNet.FPS() - g_fcDec.FPS()) > 0.7 && g_fcDec.FPS() >= 1.00 && get_cur_buffer_num() > 3
 			&& !g_bSendFPSAjust && cmd::GetCmdClient() && g_fcDec.FPS() <= g_fpsDecLast)
 		{
-			//向服务器发送调整帧率的命令
 			double fps = g_fcDec.FPS() - 1.5;
 			if(fps < 1.0)
 			{
@@ -198,7 +189,6 @@ static void H264DataCallback(void *p,int len,unsigned int timeMs)
 	}
 	{
 		uint64_t cur = get_sys_tickcount();
-		//统计网络延迟，每20秒
 		if(!g_ndTimeLast)
 		{
 			g_ndTimeLast = cur;
@@ -307,7 +297,6 @@ static void H264DataCallback(void *p,int len,unsigned int timeMs)
 		if(g_frameRecved > 60 && (g_fcNet.FPS() - g_fcDec.FPS()) > 0.7 && g_fcDec.FPS() >= 1.00 && get_cur_buffer_num() > 3
 			&& !g_bSendFPSAjust && g_client)
 		{
-			//向服务器发送调整帧率的命令
 			rapidjson::Document doc;
 			char buf[50];
 			doc.SetObject();
@@ -439,11 +428,6 @@ void StartRTMPThread()
 	}
 }
 
-/**
-*@brief 得到设备端视频流的宽度和高度
-*@return 如果正常获取，返回0值，否则返回非0值
-*/
-
 int GetVideoMetrics(int *pWidth,int *pHeight)
 {
 	if(g_width)
@@ -454,10 +438,7 @@ int GetVideoMetrics(int *pWidth,int *pHeight)
 	}
 	return 1;
 }
-/**
-*@brief 判断视频流数据是否准备好并可以用于显示
-*@return 返回true表明已经准备好
-*/
+
 bool IsVideoInited()
 {
 	if(VmcGetAjustedDecodeMode() == DECODE_SOFTWARE)
@@ -469,12 +450,6 @@ bool IsVideoInited()
 		return false;
 	}
 }
-
-/**
-*@brief 启动软件解码器
-*
-*
-*/
 
 void StartSoftDecoder()
 {

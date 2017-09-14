@@ -155,7 +155,7 @@ public class HexMiniApplication extends Application
 			InputStream in = null;
 			OutputStream out = null;
 			try {
-				in = assetManager.open(settingsFileName); //从Asset里面复制
+				in = assetManager.open(settingsFileName);
 				out =  openFileOutput(settingsFileName, MODE_PRIVATE);
 
 				byte[] buffer = new byte[1024];

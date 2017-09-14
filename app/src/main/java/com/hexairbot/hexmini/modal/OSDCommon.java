@@ -144,12 +144,7 @@ public class OSDCommon {
 		
 		return dataPackage;
 	}
-	
-	/*创建出特定的带参数的请求
-	 *@param msp 请求的命令
-	 *@param payload 请求命令的参数
-	 *@returns 返回创建的请求
-	 */
+
 	private static ArrayList<Byte> requestMSPWithPayload (int msp, byte[] payload) {
 		ArrayList<Byte> bf = new ArrayList();
 	    
@@ -188,15 +183,11 @@ public class OSDCommon {
 	    
 	    return bf;
 	}
-	
-	/*创建出特定的待参数的请求
-	 *@param msps 请求的命令列表
-	 *@returns 返回创建的请求
-	 */
+
 	private static ArrayList<Byte> requestMSPList (int[] msps) {
 	    ArrayList<Byte> requestList = new ArrayList<Byte>();
 	    byte emptyPayload[] = new byte[0];
-	    
+
 	    for(int mspIdx = 0; mspIdx < msps.length; mspIdx++){
 	        requestList.addAll(requestMSPWithPayload(msps[mspIdx], emptyPayload));//
 
@@ -204,10 +195,6 @@ public class OSDCommon {
 	    return requestList;
 	}
 
-	/*创建出特定命令的请求
-	 *@param msp 请求的命令
-	 *@returns 返回创建的请求
-	 */
 	private static ArrayList<Byte> requestMSP(int msp) {
 	    byte emptyPayload[] = new byte[0];
 	    

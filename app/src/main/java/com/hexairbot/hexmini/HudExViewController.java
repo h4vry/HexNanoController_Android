@@ -1240,7 +1240,7 @@ public class HudExViewController extends ViewController
 		if (infos.length > 1) {
 		    plugin = Integer.parseInt(infos[1]) > 0 ? true : false;
 		}
-		if (isAcPlugin != plugin) { //表示正在充电
+		if (isAcPlugin != plugin) {
 			/**
 		    if (plugin) {
 			battery_device
@@ -1254,7 +1254,7 @@ public class HudExViewController extends ViewController
 		    }
 		    */
 		}
-		if (!plugin) { //表示没有在充电
+		if (!plugin) {
 		   // deviceBatteryIndicator.setValue(Math.min(level / 25, 3));
 		}
 		isAcPlugin = plugin;

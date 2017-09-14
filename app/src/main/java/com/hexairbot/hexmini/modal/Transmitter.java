@@ -155,7 +155,6 @@ public class Transmitter implements OSDDataDelegate{
 	
 	int check = 0;
 
-	//传输八个通道的数据，通道数据用5个字节来表示
     private void updateDataPackage(){
 		byte checkSum = 0;
 	    

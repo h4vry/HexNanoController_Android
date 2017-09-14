@@ -57,8 +57,7 @@ enum DATA_TYPE
 	
 };
 
-// NALUµ¥Ôª  
-struct NaluUnit  
+struct NaluUnit
 {  
     int type;  
     int size;  
