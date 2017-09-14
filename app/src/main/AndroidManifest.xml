@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.hexairbot.hexmini"
-    android:versionCode="1"
-    android:versionName="1.5.0" >
+    package="com.hexairbot.hexmini">
 
-    <uses-sdk
-        android:minSdkVersion="18"
-        android:targetSdkVersion="19" />
     <uses-feature android:required="true" android:glEsVersion="0x00020000"/>
 
         <!-- Declare this required feature if you want to make the app available to BLE-capable
