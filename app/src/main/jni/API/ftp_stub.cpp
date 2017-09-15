@@ -1,7 +1,6 @@
 /*
  * ftp_stub.cpp
  *
- *  Created on: 2014年1月22日
  *      Author: Administrator
  */
 
@@ -10,6 +9,7 @@
 #include <string>
 #include <map>
 #include <ftplib.h>
+#include <cstdlib>
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "FTPClient", __VA_ARGS__))
 

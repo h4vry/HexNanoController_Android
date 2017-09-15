@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <jni.h>
 #include <android/log.h>
+#include <cstring>
 #include "vmcipc_javatool.h"
 
 

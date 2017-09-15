@@ -12,6 +12,7 @@
 #include "IPCConfig.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #define TAG "IPCCONFIG"
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_INFO, "vmc", __VA_ARGS__))

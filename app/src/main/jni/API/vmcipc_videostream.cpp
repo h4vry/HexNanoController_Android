@@ -2,6 +2,7 @@
 #include <string>
 #include <android/native_window.h> // requires ndk r5 or newer
 #include <android/native_window_jni.h> // requires ndk r5 or newer
+#include <unistd.h>
 
 #include "VCmdDefines.h"
 #include "vmcipc_videostream.h"
