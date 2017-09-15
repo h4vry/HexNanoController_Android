@@ -1,57 +1,35 @@
 package com.hexairbot.hexmini;
 
-import java.text.SimpleDateFormat;
-
-import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.opengl.GLSurfaceView;
-import android.os.AsyncTask;
 import android.os.BatteryManager;
-import android.os.Environment;
-import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnDoubleTapListener;
 import android.view.GestureDetector.OnGestureListener;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-
-import com.hexairbot.hexmini.R;
 
 import com.hexairbot.hexmini.HexMiniApplication.AppStage;
 import com.hexairbot.hexmini.ble.BleConnectinManager;
 import com.hexairbot.hexmini.gestures.EnhancedGestureDetector;
-import com.hexairbot.hexmini.ipc.activity.GalleryActivity;
-import com.hexairbot.hexmini.ipc.view.VideoSettingView;
 import com.hexairbot.hexmini.modal.ApplicationSettings;
 import com.hexairbot.hexmini.modal.Channel;
 import com.hexairbot.hexmini.modal.OSDCommon;
@@ -62,29 +40,22 @@ import com.hexairbot.hexmini.sensors.DeviceSensorManagerWrapper;
 import com.hexairbot.hexmini.ui.AnimationIndicator;
 import com.hexairbot.hexmini.ui.Button;
 import com.hexairbot.hexmini.ui.Image;
+import com.hexairbot.hexmini.ui.Image.SizeParams;
 import com.hexairbot.hexmini.ui.Indicator;
 import com.hexairbot.hexmini.ui.Sprite;
+import com.hexairbot.hexmini.ui.Sprite.Align;
 import com.hexairbot.hexmini.ui.Text;
 import com.hexairbot.hexmini.ui.ToggleButton;
 import com.hexairbot.hexmini.ui.UIRenderer;
-import com.hexairbot.hexmini.ui.Image.SizeParams;
-import com.hexairbot.hexmini.ui.Sprite.Align;
 import com.hexairbot.hexmini.ui.joystick.AcceleratorJoystick;
 import com.hexairbot.hexmini.ui.joystick.AnalogueJoystick;
 import com.hexairbot.hexmini.ui.joystick.JoystickBase;
 import com.hexairbot.hexmini.ui.joystick.JoystickFactory;
-import com.hexairbot.hexmini.ui.joystick.JoystickListener;
 import com.hexairbot.hexmini.ui.joystick.JoystickFactory.JoystickType;
-import com.hexairbot.hexmini.util.DebugHandler;
+import com.hexairbot.hexmini.ui.joystick.JoystickListener;
 import com.hexairbot.hexmini.util.FontUtils;
-import com.hexairbot.hexmini.util.SystemUtil;
-import com.vmc.ipc.config.VmcConfig;
-import com.vmc.ipc.proxy.IpcProxy;
-import com.vmc.ipc.proxy.IpcProxy.OnRecordCompleteListener;
-import com.vmc.ipc.service.ConnectStateManager;
-import com.vmc.ipc.service.IpcControlService;
-import com.vmc.ipc.service.OnIpcConnectChangedListener;
-import com.vmc.ipc.util.MediaUtil;
+
+import java.text.SimpleDateFormat;
 
 
 public class HudExViewController extends ViewController
@@ -188,51 +159,13 @@ public class HudExViewController extends ViewController
     private float rollBase;
     private boolean rollAndPitchJoystickPressed;
     
-    private IpcControlService controlService;
-    
-    private GLSurfaceView videoStageSoft = null;
-    private SurfaceView videoStageHard = null;
-    
-    private LocalBroadcastManager mLocalBroadcastManager;
-    
-    private IpcProxy ipcProxy;
-    
-    private boolean isStartRecord = false;
-    final CustomOnRecordCompleteListener mCustomOnRecordCompleteListener = new CustomOnRecordCompleteListener();
-    
-    private boolean isAcPlugin = false;
     private SoundPool mSoundPool;
     private int camera_click_sound;
     private int video_record_sound;
-    private boolean canRefreshUI = false;
     private Image middleBg;
     
     private Text debugTextView;
     
-    
-    private void setCurrentDecodeMode(){
-    	int decodeMode = VmcConfig.getInstance().getDecodeMode();
-		if (decodeMode == -1) {
-			decodeMode = IpcProxy.DEFAULT_DECODE_MODE;
-		}
-		setDecodeMode(decodeMode);
-    }
-    
-    private void setVideoEnv(){
-    	SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(this.context);
-
-    	setCurrentDecodeMode();
-		
-	    Intent intent = new Intent();
-		intent.setClass(this.context, IpcControlService.class);
-		this.context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-	    
-	    mLocalBroadcastManager = LocalBroadcastManager.getInstance(this.context);
-	    registerAllBroadcastReceiver();
-		
-    	
-    }
     
 	public HudExViewController(Activity context, HudViewControllerDelegate delegate)
 	{
@@ -271,16 +204,8 @@ public class HudExViewController extends ViewController
 		glView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 		 
 		mainFrameLayout.addView(glView);
-		
-		ConnectStateManager mConnectStateManager = ConnectStateManager
-				.getInstance(HexMiniApplication.sharedApplicaion());
-		ipcProxy = mConnectStateManager.getIpcProxy();
-		
-		videoStageSoft = (GLSurfaceView)context.findViewById(R.id.video_bg_soft2);
-		videoStageHard = (SurfaceView)context.findViewById(R.id.video_bg_hard2);
-		
 
-		setVideoEnv();
+        registerAllBroadcastReceiver();
 		
 		//context.setContentView(glView);
 		
@@ -474,23 +399,9 @@ public class HudExViewController extends ViewController
 	}
 	
 	private void initUiControlShow() {
-		if (controlService == null) {
-			wifiIndicator.setVisible(false);
-			captureBtn.setEnabled(false);
-			recordBtn.setEnabled(false);
-		} else {
-			int state = controlService.getConnectStateManager().getState();
-		    if (state == ConnectStateManager.CONNECTING || state == ConnectStateManager.DISCONNECTED) {
-		    	wifiIndicator.setVisible(false);
-				captureBtn.setEnabled(false);
-				recordBtn.setEnabled(false);
-		    } else {
-		    	wifiIndicator.setVisible(true);
-				captureBtn.setEnabled(true);
-				recordBtn.setEnabled(true);
-				canRefreshUI = true;
-		    }
-		}
+		wifiIndicator.setVisible(false);
+		captureBtn.setEnabled(false);
+		recordBtn.setEnabled(false);
 	}
 	
 	private void initChannels() {
@@ -658,143 +569,8 @@ public class HudExViewController extends ViewController
 				}
 			}
 		});
-	
-		initVideoListener();
 	}
-		
-	private void initVideoListener(){
-		
-		galleryBtn.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(HudExViewController.this.context, GalleryActivity.class);
-				intent.putExtra("type", MediaUtil.MEDIA_TYPE_ALL);		
-				intent.putExtra("browser_type", GalleryActivity.BROWSER_TYPE_REMOTE);
-				HudExViewController.this.context.startActivity(intent);
-			}
-		});
-		
-		captureBtn.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View arg0) {
-				AsyncTask<Void, Void, Void> captureTask = new AsyncTask<Void, Void, Void>() {
 
-				    @Override
-				    protected void onPreExecute() {
-					super.onPreExecute();
-					captureBtn.setEnabled(false);
-				    }
-
-				    @Override
-				    protected Void doInBackground(Void... params) {
-						playSound(camera_click_sound);
-						if (!VmcConfig.getInstance().isStoreRemote()) {
-						    String dirPath = Environment
-							    .getExternalStorageDirectory()
-							    .getAbsolutePath()
-							    + MediaUtil.IPC_IMAGE_DIR;
-
-						    String filePath = generateFileName() + ".jpg";
-						    ConnectStateManager
-							    .getInstance(HexMiniApplication.sharedApplicaion())
-							    .getIpcProxy()
-							    .doTakePhoto(dirPath, filePath, false);
-						    MediaUtil.scanIpcMediaFile(HudExViewController.this.context,
-							    dirPath + filePath);
-						} else {
-						    ipcProxy.takePhotoRemote(false);
-						}
-						return null;
-				    }
-
-				    protected void onPostExecute(Void result) {
-				    	captureBtn.setEnabled(true);
-				    }
-				};
-				captureTask.execute();
-
-			}
-		});
-		
-		recordBtn.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View arg0) {
-				settingsBtn.setEnabled(false);
-				galleryBtn.setEnabled(false);
-				if (!isStartRecord) {
-				    playSound(video_record_sound);
-				    AsyncTask<Void, Void, Void> startRecordTask = new AsyncTask<Void, Void, Void>() {
-
-					@Override
-					protected Void doInBackground(Void... params) {
-					    if (!VmcConfig.getInstance().isStoreRemote()) {
-							String dirPath = Environment
-								.getExternalStorageDirectory()
-								.getAbsolutePath()
-								+ MediaUtil.IPC_VIDEO_DIR;
-							String filePath = generateFileName() + ".mp4";
-							mCustomOnRecordCompleteListener.setPath(dirPath
-								+ filePath);
-							ipcProxy.addOnRecordCompleteListener(mCustomOnRecordCompleteListener);
-							ipcProxy.doStartRecord(dirPath, null, filePath,
-								false);
-					    } else {
-					    	ipcProxy.startRecordRemote(false);
-					    }
-					    ((Activity)HudExViewController.this.context)
-						    .runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								recordingIndicator.setVisible(true);
-								recordingIndicator.start(0.6f);
-								recordingIndicator.setAlpha(1);
-							}
-						    });
-					    isStartRecord = true;
-					    return null;
-					}
-				    };
-				    startRecordTask.execute();
-				} else {
-					stopRecord();
-				}
-			}
-		});
-	}
-	
-	private void stopRecord(){
-	    playSound(video_record_sound);
-	    AsyncTask<Void, Void, Void> stopRecordTask = new AsyncTask<Void, Void, Void>() {
-
-		@Override
-		protected Void doInBackground(Void... params) {
-		    // TODO Auto-generated method stub
-		    if (!VmcConfig.getInstance().isStoreRemote()) {
-		    	ipcProxy.doStopRecord();
-		    	ipcProxy.onRecordComplete(true);
-		    	ipcProxy.removeOnRecordCompleteListener(mCustomOnRecordCompleteListener);
-		    } else {
-		    	ipcProxy.stopRecordRemote();
-		    }
-		    isStartRecord = false;
-		    return null;
-		}
-
-		protected void onPostExecute(Void result) {
-			recordingIndicator.stop();
-			recordingIndicator.setVisible(false);
-			recordingIndicator.setAlpha(0);
-		    settingsBtn.setEnabled(true);
-		    galleryBtn.setEnabled(true);
-		}
-	    };
-	    stopRecordTask.execute();
-		
-	}
-	
 	private String generateFileName() {
 		SimpleDateFormat sDateFormat  = new SimpleDateFormat("yyyyMMdd_hhmmss");     
 	    return sDateFormat.format(new java.util.Date());  
@@ -987,9 +763,6 @@ public class HudExViewController extends ViewController
 		}
 		
 		deviceOrientationManager.resume();
-		
-		if (ipcProxy != null)
-		    ipcProxy.doStartPreview();
 	}
 
     //glView onTouch Event handler
@@ -1025,7 +798,6 @@ public class HudExViewController extends ViewController
 	    renderer.clearSprites();
 	    deviceOrientationManager.destroy();
 	    unregisterAllBroadcastReceiver();
-	    this.context.unbindService(mConnection);
 	}
 
 	public boolean onDown(MotionEvent e) 
@@ -1188,309 +960,39 @@ public class HudExViewController extends ViewController
 		filter.addAction(WifiManager.RSSI_CHANGED_ACTION);
 		
 		this.context.registerReceiver(receiver, filter);
-		IntentFilter decodeFilter = new IntentFilter();
-		decodeFilter
-				.addAction(IpcControlService.ACTION_NAVDATA_BATTERYSTATECHANGED);
-		decodeFilter.addAction(IpcProxy.ACTION_DECODEMODE_CHANGED);
-		decodeFilter.addAction(IpcProxy.ACTION_CONNECT_QUALITY_CHANGED);
-		decodeFilter.addAction(ACTION_RESTART_PREVIEW);
-		decodeFilter.addAction(IpcProxy.ACTION_REFRESH_DEBUG);
-		decodeFilter.addAction(VideoSettingView.ACTION_DEBUG_PRIVEW);
-		mLocalBroadcastManager.registerReceiver(receiver, decodeFilter);
 	}
 	
 
 	private void unregisterAllBroadcastReceiver() {
 		this.context.unregisterReceiver(receiver);
-		mLocalBroadcastManager.unregisterReceiver(receiver);
 	}
 	
     private BroadcastReceiver receiver = new BroadcastReceiver() {
 
-	@Override
-	public void onReceive(Context arg0, Intent intent) {
-	    // TODO Auto-generated method stub
-	    String action = intent.getAction();
-	    if (action.equals(Intent.ACTION_TIME_CHANGED)) {
-	    	//*text_time.setText(SystemUtil.getCurrentFormatTime());
-	    } 
-	    else if (action.equals(Intent.ACTION_TIME_TICK)) {
-	    	//*text_time.setText(SystemUtil.getCurrentFormatTime());
-	    } else if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
-		final int level = intent.getIntExtra(
-			BatteryManager.EXTRA_LEVEL, 0);
-		final int scale = intent.getIntExtra(
-			BatteryManager.EXTRA_SCALE, 0);
-		final int status = intent.getIntExtra(
-			BatteryManager.EXTRA_STATUS, 0);
-		
-		setBatteryValue(level);
-		//*battery_phone.setImageLevel(level / 25);
-		//*battery_phone_text.setText(level + "%");
-	    } else if (action
-		    .equals(IpcControlService.ACTION_NAVDATA_BATTERYSTATECHANGED)) {
-		final String str = intent
-			.getStringExtra(IpcControlService.EXTRA_BATTERY_LEVEL);
-		// Log.e(TAG, String.format("device level=%s", level));
-		if (str == null)
-		    return;
-		String[] infos = str.trim().split(",");
-		int level = Integer.parseInt(infos[0]);
-		boolean plugin = false;
-		if (infos.length > 1) {
-		    plugin = Integer.parseInt(infos[1]) > 0 ? true : false;
-		}
-		if (isAcPlugin != plugin) {
-			/**
-		    if (plugin) {
-			battery_device
-				.setImageResource(R.drawable.indication_ac_plugin);
-			AnimationDrawable animation = (AnimationDrawable) battery_device
-				.getDrawable();
-			animation.start();
-		    } else {
-			battery_device
-				.setImageResource(R.drawable.device_battery_level);
-		    }
-		    */
-		}
-		if (!plugin) {
-		   // deviceBatteryIndicator.setValue(Math.min(level / 25, 3));
-		}
-		isAcPlugin = plugin;
-		//*battery_device_text.setText(level + "%");
-		if (level < 10) {
-		    //*showWarningMessage(getResources().getString(R.string.BATTERY_LOW_ALERT));
-		} else {
-		    //*hideWarningMessage();
-		}
-	    } else if (action.equals(WifiManager.RSSI_CHANGED_ACTION)) {
-	    	refreshWifiLevel();
-	    } else if (action.equals(IpcProxy.ACTION_DECODEMODE_CHANGED)) {
-		DebugHandler.logd(TAG, "IpcProxy.ACTION_DECODEMODE_CHANGED");
-		onDecodeModeChanged(intent
-			.getStringExtra(IpcProxy.EXTRA_DECODE_MODE));
-	    } else if (action.equals(IpcProxy.ACTION_CONNECT_QUALITY_CHANGED)) {
-		int state = intent.getIntExtra(IpcProxy.EXTRA_CONNECT_QUALITY,
-			0);
-		if (state == 1) {
-		    //*hideWarningMessage();
-		} else if (state == -1) {
-		    //*showWarningMessage(getResources().getString(R.string.VIDEO_CONNECTION_ALERT));
-		}
-	    } else if (action.equals(ACTION_RESTART_PREVIEW)) {
-		int mode = intent.getIntExtra("decodemode", 1);
-		DebugHandler.logd(TAG, action + "---" + mode);
-		ipcProxy.stopPreview();
-		setDecodeMode(mode);
-		ipcProxy.startPreview();
-	    } else if (action.equals(IpcProxy.ACTION_REFRESH_DEBUG)) {
-		String info = intent.getStringExtra(IpcProxy.EXTRA_DEBUG_INFO);
-		// DebugHandler.logd(TAG, "info:"+info);
-		//*if (debugInfo != null && info != null && info.length() > 0)
-		//*    debugInfo.setText(info);
-	    } else if (action.equals(VideoSettingView.ACTION_DEBUG_PRIVEW)) {
-		//*debugSwitch.setVisibility(View.VISIBLE);
-	    }
-	}
-    };
-
-	public void setDecodeMode(int decodeMode) {
-		DebugHandler.logd(TAG, "decodeMode is " + decodeMode);
-		ipcProxy.setIpcDecMode(decodeMode);
-		switch (decodeMode) {
-		case 0: {
-			videoStageHard.setVisibility(View.GONE);
-			videoStageSoft.setVisibility(View.GONE);
-			videoStageHard.setVisibility(View.VISIBLE);
-			break;
-		}
-		case 1: {
-			videoStageSoft.setVisibility(View.VISIBLE);
-			videoStageHard.setVisibility(View.GONE);
-			break;
-		}
-		case 2: {
-			videoStageHard.setVisibility(View.GONE);
-			videoStageSoft.setVisibility(View.GONE);
-			videoStageHard.setVisibility(View.VISIBLE);
-			break;
-		}
-		}
-		VmcConfig.getInstance().setDecodeMode(decodeMode);
-	}
-
-	
-	private class CustomOnRecordCompleteListener implements
-			OnRecordCompleteListener {
-
-		String filePath;
-
-		public CustomOnRecordCompleteListener() {
-		}
-
-		public CustomOnRecordCompleteListener(String path) {
-			filePath = path;
-		}
-
-		public void setPath(String path) {
-			filePath = path;
-		}
-
 		@Override
-		public void onRecordComplete(boolean isSuccess) {
+		public void onReceive(Context arg0, Intent intent) {
 			// TODO Auto-generated method stub
-			if (isSuccess)
-				MediaUtil.scanIpcMediaFile(HudExViewController.this.context, filePath);
-			else {
-				DebugHandler.logWithToast(HudExViewController.this.context,
-						"Sorry!Record fail.", 2000);
+			String action = intent.getAction();
+			if (action.equals(Intent.ACTION_TIME_CHANGED)) {
+				//*text_time.setText(SystemUtil.getCurrentFormatTime());
+			} else if (action.equals(Intent.ACTION_TIME_TICK)) {
+				//*text_time.setText(SystemUtil.getCurrentFormatTime());
+			} else if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
+				final int level = intent.getIntExtra(
+						BatteryManager.EXTRA_LEVEL, 0);
+				final int scale = intent.getIntExtra(
+						BatteryManager.EXTRA_SCALE, 0);
+				final int status = intent.getIntExtra(
+						BatteryManager.EXTRA_STATUS, 0);
+
+				setBatteryValue(level);
+				//*battery_phone.setImageLevel(level / 25);
+				//*battery_phone_text.setText(level + "%");
 			}
-			ipcProxy.removeOnRecordCompleteListener(this);
-		}
-
-	};
-	
-	private void onDecodeModeChanged(String mode) {
-		DebugHandler.logd(TAG, "onDecodeModeChanged:" + mode);
-		if (mode.equals("softdec")) {
-			videoStageHard.setVisibility(View.GONE);
-			videoStageSoft.setVisibility(View.VISIBLE);
-		} else {
-			videoStageHard.setVisibility(View.VISIBLE);
-			videoStageSoft.setVisibility(View.GONE);
-		}
-	}
-	
-	private ServiceConnection mConnection = new ServiceConnection() {
-
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			controlService = ((IpcControlService.LocalBinder) service)
-					.getService();
-			controlService.getConnectStateManager().addConnectChangedListener(
-					mOnIpcConnectChangedListener);
-			// onDroneServiceConnected();
-			initUiControlShow();
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			controlService.getConnectStateManager()
-					.removeConnectChangedListener(mOnIpcConnectChangedListener);
-			controlService = null;
+			// Log.e(TAG, String.format("device level=%s", level));
 		}
 	};
-    
-    private OnIpcConnectChangedListener mOnIpcConnectChangedListener = new OnIpcConnectChangedListener() {
 
-	@Override
-	public void OnIpcConnected() {
-		wifiIndicator.setVisible(true);
-		captureBtn.setEnabled(true);
-		recordBtn.setEnabled(true);
-		canRefreshUI = true;
-		setCurrentDecodeMode();
-	}
-
-	@Override
-	public void OnIpcDisConnected() {
-		wifiIndicator.setVisible(false);
-		captureBtn.setEnabled(false);
-		recordBtn.setEnabled(false);
-		
-		if (isStartRecord) {
-			stopRecord();
-		}
-		
-		if (canRefreshUI) {
-			//glView.invalidate();
-			videoStageHard.setVisibility(View.GONE);
-			videoStageSoft.setVisibility(View.GONE);
-		}
-		
-		canRefreshUI = false;
-	}
-
-	@Override
-	public void onIpcPaused() {
-
-	}
-
-	@Override
-	public void onIpcResumed() {
-
-	}
-    };
-    
-    
-    private void refreshWifiLevel() {
-    	WifiManager wifiManager = (WifiManager)context.getSystemService(android.content.Context.WIFI_SERVICE);
-    	WifiInfo info = wifiManager.getConnectionInfo();
-    	if (info.getBSSID() != null) {
-    		int strength = WifiManager.calculateSignalLevel(info.getRssi(), 4);
-    		Log.d(TAG, String.format("strength=%d", strength));
-    				
-    		int imgNum = strength;
-
-    		//txtBatteryStatus.setText(percent + "%");
-    		
-    		if (imgNum < 0)
-    			imgNum = 0;
-    		
-    		if (imgNum > 3) 
-    			imgNum = 3;
-
-    		if (wifiIndicator != null) {
-    			wifiIndicator.setValue(imgNum);
-    		}
-    	}
-    }
-
-    
-    @Override
-	public void viewWillAppear() {
-		// TODO Auto-generated method stub
-		super.viewWillAppear();
-	}
-	
-	
-	@Override
-	public void viewWillDisappear() {
-		// TODO Auto-generated method stub
-		super.viewWillDisappear();
-		
-		// TODO Auto-generated method stub
-		if (isStartRecord) {
-		    AsyncTask<Void, Void, Void> stopRecordTask = new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected Void doInBackground(Void... params) {
-			    // TODO Auto-generated method stub
-			    if (!VmcConfig.getInstance().isStoreRemote()) {
-				ipcProxy.doStopRecord();
-				ipcProxy.onRecordComplete(true);
-				ipcProxy.removeOnRecordCompleteListener(mCustomOnRecordCompleteListener);
-			    } else {
-				ipcProxy.stopRecordRemote();
-			    }
-			    isStartRecord = false;
-			    ipcProxy.doStopPreview();
-			    return null;
-			}
-		    };
-		    stopRecordTask.execute();
-		} else {
-		    ipcProxy.doStopPreview();
-		}
-		
-		
-		if (mSoundPool != null)
-		    mSoundPool.release();
-		//super.onStop();
-		
-	}
-	
 	private void initSound() {
 		if (mSoundPool == null) {
 			mSoundPool = new SoundPool(2, AudioManager.STREAM_SYSTEM, 0);

@@ -1,20 +1,14 @@
 
 package com.hexairbot.hexmini;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -30,29 +24,30 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.SeekBar;
-import android.widget.Toast;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hexairbot.hexmini.adapter.SettingsViewAdapter;
 import com.hexairbot.hexmini.ble.BleConnectinManager;
 import com.hexairbot.hexmini.ble.BleConnectinManagerDelegate;
-import com.hexairbot.hexmini.ipc.view.VideoSettingView;
 import com.hexairbot.hexmini.modal.ApplicationSettings;
 import com.hexairbot.hexmini.modal.OSDCommon;
 import com.hexairbot.hexmini.modal.Transmitter;
 import com.hexairbot.hexmini.ui.control.ViewPagerIndicator;
-import com.vmc.ipc.proxy.IpcProxy;
-import com.hexairbot.hexmini.R;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class SettingsViewController extends ViewController
         implements OnPageChangeListener,
@@ -132,10 +127,9 @@ public class SettingsViewController extends ViewController
         }
     };
     private boolean bleAvailabed;
-    
-    
+
+
     LocalBroadcastManager mLocalBroadcastManager;
-    VideoSettingView videoSetting;
 
     
     public SettingsViewController(Context context, LayoutInflater inflater, ViewGroup container, SettingsViewControllerDelegate delegate)
@@ -405,17 +399,9 @@ public class SettingsViewController extends ViewController
         ArrayList<View> pageList = new ArrayList<View>(pageIds.length);
 
         for (int i = 0; i < pageIds.length; ++i) {
-        	if(pageIds[i] == R.layout.settings_page_video){
-        		videoSetting = new VideoSettingView(context,inflater);
-        		//videoSetting.setTitle(this.getActivity().getResources().getString(R.string.set_video_setting));
-        		pageList.add(videoSetting.getContent());
-        		
-        	}
-        	else{
-        		View view = inflater.inflate(pageIds[i], null);
-        		//FontUtils.applyFont(inflater.getContext(), (ViewGroup) view);
-        		pageList.add(view);
-        	}
+			View view = inflater.inflate(pageIds[i], null);
+			//FontUtils.applyFont(inflater.getContext(), (ViewGroup) view);
+			pageList.add(view);
         }
 
         return pageList;
@@ -957,12 +943,6 @@ public class SettingsViewController extends ViewController
 		// TODO Auto-generated method stub
 		super.viewWillAppear();
 		sendBleEnableRequest();
-		
-		IntentFilter filter = new IntentFilter();
-		filter.addAction(IpcProxy.ACTION_BITRATE_CHANGED);
-		filter.addAction(IpcProxy.ACTION_DECODEMODE_CHANGED);
-		filter.addAction(IpcProxy.ACTION_RESOLUTION_CHANGED);
-		mLocalBroadcastManager.registerReceiver(receiver, filter);
 	}
 	
 	
@@ -985,30 +965,6 @@ public class SettingsViewController extends ViewController
 				Log.d("LeScanCallback", "stop scan");
 			}
 		}
-		
-		mLocalBroadcastManager.unregisterReceiver(receiver);
 	}
 	
-    BroadcastReceiver receiver = new BroadcastReceiver() {
-
-	@Override
-	public void onReceive(Context context, Intent intent) {
-	    // TODO Auto-generated method stub
-	    String action = intent.getAction();
-	    if(action.equals(IpcProxy.ACTION_RESOLUTION_CHANGED)) {
-		if(videoSetting != null) {
-		    videoSetting.refreshResolutionConfig();
-		}
-	    }
-	    else if(action.equals(IpcProxy.ACTION_DECODEMODE_CHANGED)) {
-		if(videoSetting != null) {
-		    videoSetting.refreshDecodeConfig();
-		}
-	    }
-	    else if(action.equals(IpcProxy.ACTION_BITRATE_CHANGED)) {
-		
-	    }
-	}
-	
-    };
 }

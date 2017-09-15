@@ -3,53 +3,31 @@ package com.hexairbot.hexmini;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.media.CamcorderProfile;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
-import android.net.Uri;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.hexairbot.hexmini.R;
-
 import com.hexairbot.hexmini.HexMiniApplication.AppStage;
-import com.hexairbot.hexmini.ipc.activity.GalleryActivity;
-import com.hexairbot.hexmini.ipc.activity.IpcAlertDialog;
-import com.hexairbot.hexmini.ipc.activity.IpcAlertDialogHandler;
 import com.hexairbot.hexmini.modal.OSDCommon;
 import com.hexairbot.hexmini.modal.Transmitter;
-import com.vmc.ipc.service.ApConnectService;
-import com.vmc.ipc.service.ConnectStateManager;
-import com.vmc.ipc.service.IpcControlService;
-import com.vmc.ipc.service.OnIpcConnectChangedListener;
-import com.vmc.ipc.util.DebugHandler;
-import com.vmc.ipc.util.MediaUtil;
 
 public class MainExActivity extends FragmentActivity implements
-		OnIpcConnectChangedListener, SettingsDialogDelegate, OnTouchListener,
+		SettingsDialogDelegate, OnTouchListener,
 		HudViewControllerDelegate {
 
 	private static final String TAG = "MainExActivity";
@@ -70,8 +48,6 @@ public class MainExActivity extends FragmentActivity implements
 	private boolean isStarted = false;
 
 	private long lastToastTime = 0;
-
-	private IpcControlService controlService = null;
 
 	private LinearLayout splash;
 	private static final int STOPSPLASH = 0;
@@ -96,15 +72,6 @@ public class MainExActivity extends FragmentActivity implements
 		Log.d(TAG, "----onCreate");
 
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
-		Intent intent = new Intent();
-		intent.setClass(this, IpcControlService.class);
-		this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
-		Intent apintent = new Intent();
-		apintent.setAction(ApConnectService.ACTION_CHECK_AND_ENABLE_WIFI);
-		apintent.setClass(this, ApConnectService.class);
-		this.startService(apintent);
 
 		showSystemInfo();
 		
@@ -137,10 +104,6 @@ public class MainExActivity extends FragmentActivity implements
 		 * showToast("Spinner1: unselected"); } }); } else {
 		 * serverSelect.setVisibility(View.GONE); } // //////////
 		 */
-		ConnectStateManager mConnectStateManager = ConnectStateManager.getInstance(this.getApplication());
-		mConnectStateManager.init();
-		mConnectStateManager.connect("rtmp://192.168.1.1/live/stream");
-		valiateConnectState();
 		// setContentView(R.layout.hud_view_controller_framelayout);
 		// splash = (LinearLayout) findViewById(R.id.splash);
 		//
@@ -151,206 +114,14 @@ public class MainExActivity extends FragmentActivity implements
 		hudVC = new HudExViewController(this, this);
 		hudVC.onCreate();
 		hudVC.onResume();
-		
-		initBroadcastReceiver();
 	}
 
-	private void connectIPC(String address) {
-		ConnectStateManager mConnectStateManager = ConnectStateManager
-				.getInstance(this.getApplication());
-		mConnectStateManager.connect(address);
-	}
-
-	private void valiateConnectState() {
-		// boolean wifiEnabled = checkWifiEnable();
-		// if (!wifiEnabled)
-		// return;
-		String reason = null;
-		if (controlService == null) {
-			reason = "can not control your device,because controlService is null.";
-		} else {
-			int state = controlService.getConnectStateManager().getState();
-			if (state == ConnectStateManager.CONNECTING
-					|| state == ConnectStateManager.DISCONNECTED) {
-				reason = "your phone was not connect to the device.";
-			}
-		}
-		if (reason != null) {
-			//DebugHandler.logWithToast(this, reason, 2000);
-			return;
-		}
-	}
-
-	private boolean checkWifiEnable() {
-		WifiManager wifiManager = (WifiManager) this
-				.getSystemService(Context.WIFI_SERVICE);
-		boolean wifiEnabled = wifiManager.isWifiEnabled();
-		if (!wifiEnabled) {
-			showDialogWhenWifiCheckFail();
-		}
-		return wifiEnabled;
-	}
-
-	public void initBroadcastReceiver() {
-		// IntentFilter filter = new IntentFilter();
-		// filter.addAction(WifiManager.RSSI_CHANGED_ACTION);
-		// filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-		// filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-		// this.registerReceiver(connectStateChangedReceiver, filter);
-		IntentFilter dd = new IntentFilter();
-		dd.addAction(ConnectStateManager.ACTION_CONNECT_STATE_CHANGED);
-		LocalBroadcastManager.getInstance(this).registerReceiver(
-				connectStateChangedReceiver, dd);
-	}
-
-	public void destroyBroadcastReceiver() {
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(
-				connectStateChangedReceiver);
-	}
-
-	private ServiceConnection mConnection = new ServiceConnection() {
-
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			controlService = ((IpcControlService.LocalBinder) service)
-					.getService();
-			controlService.getConnectStateManager().addConnectChangedListener(
-					MainExActivity.this);
-			// onDroneServiceConnected();
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			controlService.getConnectStateManager()
-					.removeConnectChangedListener(MainExActivity.this);
-			controlService = null;
-		}
-	};
-
-	private void showDialogWhenWifiCheckFail() {
-		IpcAlertDialog dialog = new IpcAlertDialog();
-		dialog.setTitle(R.string.app_name);
-		dialog.setMessage(R.string.wifi_disabled);
-		dialog.setPbtn_text(R.string.enable_wifi);
-		dialog.setHandler(new IpcAlertDialogHandler() {
-
-			@Override
-			public void positive() {
-				// TODO Auto-generated method stub
-				Intent intent = new Intent("android.settings.WIFI_SETTINGS");
-				MainExActivity.this.startActivity(intent);
-			}
-
-			@Override
-			public void negtive() {
-				// TODO Auto-generated method stub
-
-			}
-		});
-		dialog.show(getSupportFragmentManager(), "wificheck");
-	}
-
-	private BroadcastReceiver connectStateChangedReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			String action = intent.getAction();
-			int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
-					WifiManager.WIFI_STATE_UNKNOWN);
-			if (action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)
-					&& (state == WifiManager.WIFI_STATE_DISABLED || state == WifiManager.WIFI_STATE_UNKNOWN)) {
-				//showDialogWhenWifiCheckFail();
-			} else if (action
-					.equals(ConnectStateManager.ACTION_CONNECT_STATE_CHANGED)) {
-				DebugHandler.logd(TAG,
-						ConnectStateManager.ACTION_CONNECT_STATE_CHANGED);
-			}
-			//refreshWifiInfo();
-		}
-
-	};
-
-	private OnClickListener mOnClickListener = new OnClickListener() {
-
-		@Override
-		public void onClick(View v) {
-			if (v == btnHome) {
-				startWebHomeActivity();
-			} else if (v == btnSetting) {
-				// startSettingsActivity();
-			} else if (v == btnVideos) {
-				startMediaActivity(MediaUtil.MEDIA_TYPE_VIDEO);
-			} else if (v == btnPictures) {
-				startMediaActivity(MediaUtil.MEDIA_TYPE_IMAGE);
-			}
-		}
-	};
-
-	private void startMediaActivity(int type) {
-		// if(!VmcConfig.getInstance().isStoreRemote()) {
-		if (false) {
-			if (MediaUtil.hasIpcMediaFile(type)) {
-				// if(true) {
-				Intent intent = new Intent(Intent.ACTION_VIEW);
-				if (type == MediaUtil.MEDIA_TYPE_IMAGE) {
-					intent.setType("vnd.android.cursor.dir/image");// ͼƬ�б�
-				} else {
-					intent.setType("vnd.android.cursor.dir/video");// ��Ƶ�б�
-				}
-				intent.putExtra("type", type);
-				intent.setClass(this, GalleryActivity.class);
-				this.startActivity(intent);
-			} else {
-				DebugHandler.logWithToast(this,
-						"You don't have any multimedia files.", 2000);
-			}
-		} else {
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			if (type == MediaUtil.MEDIA_TYPE_IMAGE) {
-				intent.setType("vnd.android.cursor.dir/image");
-			} else {
-				intent.setType("vnd.android.cursor.dir/video");
-			}
-			intent.putExtra("type", type);
-			intent.putExtra("browser_type", GalleryActivity.BROWSER_TYPE_REMOTE);
-			intent.setClass(this, GalleryActivity.class);
-			this.startActivity(intent);
-		}
-	}
-
-	private void startWebHomeActivity() {
-		// Intent intent = new Intent();
-		// intent.setClass(MainActivity.this, WebHomeActivity.class);
-		// this.startActivity(intent);
-
-		String url;
-		int state = ConnectStateManager.getInstance(getApplication())
-				.getState();
-		if (state == ConnectStateManager.CONNECTING
-				|| state == ConnectStateManager.DISCONNECTED) {
-			url = "http://www.vimicro.com.cn";
-		} else {
-			url = "http://192.168.1.1";
-		}
-		Uri u = Uri.parse(url);
-		Intent it = new Intent(Intent.ACTION_VIEW, u);
-		this.startActivity(it);
-	}
-
-	private void showSystemInfo() {
+    private void showSystemInfo() {
 		Display wm = this.getWindow().getWindowManager().getDefaultDisplay();
-		DebugHandler.logd(TAG, "screen.w=" + wm.getWidth());
-		DebugHandler.logd(TAG, "screen.w=" + wm.getHeight());
-		DebugHandler.logd(TAG, "screen.getPixelFormat=" + wm.getPixelFormat());
+		Log.d(TAG, "screen.w=" + wm.getWidth());
+		Log.d(TAG, "screen.w=" + wm.getHeight());
+		Log.d(TAG, "screen.getPixelFormat=" + wm.getPixelFormat());
 		dumpVideoCapabilitiesInfo();
-	}
-
-	private void refreshWifiInfo() {
-		WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-		if (ssid != null && wifiInfo != null) {
-			ssid.setText(wifiInfo.getSSID());
-		}
 	}
 
 	@SuppressLint("NewApi")
@@ -413,8 +184,6 @@ public class MainExActivity extends FragmentActivity implements
 		// TODO Auto-generated method stub
 		super.onDestroy();
 		
-		destroyBroadcastReceiver();
-		
 		Log.e("onDestroy", "");
 
 		if (Transmitter.sharedTransmitter().getBleConnectionManager() != null) {
@@ -426,7 +195,6 @@ public class MainExActivity extends FragmentActivity implements
 		hudVC.onDestroy();
 		hudVC = null;
 
-		this.unbindService(mConnection);
 		Thread destroy = new Thread(new Runnable() {
 
 			@Override
@@ -512,44 +280,6 @@ public class MainExActivity extends FragmentActivity implements
 		HexMiniApplication.sharedApplicaion().setAppStage(AppStage.UNKNOWN);
 		
 		Log.e("onStop()", "onStop");
-	}
-
-	@Override
-	public void OnIpcConnected() {
-		// TODO Auto-generated method stub
-		if (connectState != null)
-			connectState.setText("connected");
-		DebugHandler.logWithToast(this,
-				this.getResources().getString(R.string.connect_success), 2000);
-		String[] keys = { "device", "version" };
-		String[] values = { "android", "4.1.2" };
-		ConnectStateManager.getInstance(getApplication()).getIpcProxy()
-				.sendMessage2Server(keys, values);
-	}
-
-	@Override
-	public void OnIpcDisConnected() {
-		// TODO Auto-generated method stub
-		if (connectState != null)
-			connectState.setText("disconnected");
-		// long current = System.currentTimeMillis();
-		// if(isStarted && current - lastToastTime > 2000) {
-		// DebugHandler.logWithToast(this,
-		// this.getResources().getString(R.string.connect_fail), 1000);
-		// lastToastTime = current;
-		// }
-	}
-
-	@Override
-	public void onIpcPaused() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onIpcResumed() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override

@@ -10,10 +10,6 @@ android {
         targetSdkVersion 26
         versionCode 1
         versionName "1.5.0"
-
-        ndk {
-            abiFilters 'armeabi', 'armeabi-v7a'
-        }
     }
 
     buildTypes {
@@ -25,7 +21,7 @@ android {
 
     externalNativeBuild {
         ndkBuild {
-            path 'src/main/jni/Android.mk'
+            path 'src/main/jni/GLFIX/Android.mk'
         }
     }
 }
